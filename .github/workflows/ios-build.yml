@@ -1,0 +1,42 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.6
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build iOS (sin firma)
+        run: flutter build ios --release --no-codesign
+
+      - name: Empaquetar Runner.app
+        run: |
+          cd build/ios/iphoneos
+          zip -r Runner-ios-unsigned.zip Runner.app
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: Runner-ios-unsigned
+          path: build/ios/iphoneos/Runner-ios-unsigned.zip
+          retention-days: 14
