@@ -77,8 +77,12 @@ class RoutineGenerator {
       _Slot({'lower arms'}, 1),
       _Slot({'back'}, 1),
     ]);
+    // Los targets van explícitos: en el dataset "upper legs" es 63% glúteo,
+    // así que sin filtro un día de pierna saldría casi todo glúteo.
     const legs = _DayTemplate('Piernas y core', [
-      _Slot({'upper legs'}, 3),
+      _Slot({'upper legs'}, 1, targets: {'quads'}),
+      _Slot({'upper legs'}, 1, targets: {'hamstrings'}),
+      _Slot({'upper legs'}, 1, targets: {'glutes'}),
       _Slot({'lower legs'}, 1),
       _Slot({'waist'}, 2),
       _Slot({'upper legs'}, 1),
@@ -90,11 +94,17 @@ class RoutineGenerator {
       _Slot({'upper arms'}, 2),
     ]);
     const lower = _DayTemplate('Tren inferior', [
-      _Slot({'upper legs'}, 3),
+      _Slot({'upper legs'}, 1, targets: {'quads'}),
+      _Slot({'upper legs'}, 1, targets: {'hamstrings'}),
+      _Slot({'upper legs'}, 1, targets: {'glutes'}),
       _Slot({'lower legs'}, 1),
       _Slot({'waist'}, 2),
       _Slot({'upper legs'}, 1),
     ]);
+
+    if (profile.focus == TrainingFocus.lowerBody) {
+      return _lowerBodyTemplates(days, beginner, upper);
+    }
 
     if (beginner) {
       return List.filled(days, full);
@@ -107,12 +117,74 @@ class RoutineGenerator {
     };
   }
 
-  WorkoutDay _buildDay(_DayTemplate template) {
-    final perDay = switch (profile.level) {
-      Level.beginner => 5,
-      Level.intermediate => 6,
-      Level.advanced => 7,
+  /// Semana con prioridad en glúteo, pierna y abdomen.
+  ///
+  /// Sigue la "regla de los tercios" del entrenamiento de glúteo: cada día
+  /// inferior combina empuje de cadera (glutes), patrón de sentadilla/zancada
+  /// (quads/hamstrings) y trabajo lateral (abductores/aductores). Se conservan
+  /// dos exposiciones semanales de tren superior para no desbalancear.
+  List<_DayTemplate> _lowerBodyTemplates(
+      int days, bool beginner, _DayTemplate upper) {
+    const gluteDay = _DayTemplate('Glúteo y core', [
+      _Slot({'upper legs'}, 3, targets: {'glutes'}),
+      _Slot({'upper legs'}, 1, targets: {'abductors', 'adductors'}),
+      _Slot({'waist'}, 2),
+      _Slot({'upper legs'}, 1, targets: {'glutes'}),
+      _Slot({'upper legs'}, 1, targets: {'hamstrings'}),
+    ]);
+    const legDay = _DayTemplate('Pierna completa y abs', [
+      _Slot({'upper legs'}, 2, targets: {'quads'}),
+      _Slot({'upper legs'}, 1, targets: {'glutes'}),
+      _Slot({'upper legs'}, 1, targets: {'hamstrings'}),
+      _Slot({'waist'}, 2),
+      _Slot({'lower legs'}, 1),
+    ]);
+    const gluteAbs = _DayTemplate('Glúteo, abductores y abs', [
+      _Slot({'upper legs'}, 2, targets: {'glutes'}),
+      _Slot({'upper legs'}, 1, targets: {'abductors', 'adductors'}),
+      _Slot({'waist'}, 3),
+      _Slot({'lower legs'}, 1),
+    ]);
+    const upperCore = _DayTemplate('Tren superior y core', [
+      _Slot({'back'}, 2),
+      _Slot({'chest'}, 1),
+      _Slot({'shoulders'}, 1),
+      _Slot({'waist'}, 2),
+      _Slot({'upper arms'}, 1),
+    ]);
+    const fullLower = _DayTemplate('Cuerpo completo · énfasis glúteo', [
+      _Slot({'upper legs'}, 2, targets: {'glutes'}),
+      _Slot({'upper legs'}, 1, targets: {'quads', 'hamstrings'}),
+      _Slot({'waist'}, 1),
+      _Slot({'back'}, 1),
+      _Slot({'chest'}, 1),
+      _Slot({'shoulders'}, 1),
+      _Slot({'upper legs'}, 1, targets: {'abductors', 'adductors'}),
+    ]);
+
+    if (beginner) {
+      // Cuerpo completo para aprender los patrones, con glúteo de protagonista
+      // y un día dedicado a partir de la tercera sesión.
+      const week = [fullLower, fullLower, gluteDay, fullLower, gluteDay];
+      return week.take(days).toList();
+    }
+    return switch (days) {
+      2 => const [fullLower, gluteDay],
+      3 => const [gluteDay, upperCore, legDay],
+      4 => [gluteDay, upperCore, legDay, upper],
+      _ => [gluteDay, upperCore, legDay, upper, gluteAbs],
     };
+  }
+
+  WorkoutDay _buildDay(_DayTemplate template) {
+    // El énfasis inferior suma un ejercicio: el trabajo de abductores y abdomen
+    // es de aislamiento y alarga poco la sesión.
+    final perDay = switch (profile.level) {
+          Level.beginner => 5,
+          Level.intermediate => 6,
+          Level.advanced => 7,
+        } +
+        (profile.focus == TrainingFocus.lowerBody ? 1 : 0);
     final (sets, reps, rest) = _prescription();
 
     final used = <String>{};
@@ -182,6 +254,7 @@ class RoutineGenerator {
 
     List<Exercise> candidates(Set<String> difficulties) => catalog
         .where((e) =>
+            !e.isStretch &&
             slot.bodyParts.contains(e.bodyPart) &&
             (slot.targets == null || slot.targets!.contains(e.target)) &&
             difficulties.contains(e.difficulty) &&

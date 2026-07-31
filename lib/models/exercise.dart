@@ -23,6 +23,13 @@ class Exercise {
     required this.imageUrl,
   });
 
+  static final _stretchPattern =
+      RegExp(r'stretch|yoga|\bpose\b|mobility|foam roll');
+
+  /// Estiramientos y posturas de yoga: siguen disponibles en la biblioteca,
+  /// pero no se recetan como ejercicio de fuerza con series y repeticiones.
+  bool get isStretch => _stretchPattern.hasMatch(name.toLowerCase());
+
   factory Exercise.fromJson(Map<String, dynamic> j) => Exercise(
         id: j['id'] as String,
         name: j['name'] as String,

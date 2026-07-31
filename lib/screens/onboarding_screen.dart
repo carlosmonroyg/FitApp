@@ -21,7 +21,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
-  static const _pageCount = 7;
+  static const _pageCount = 8;
   int _page = 0;
 
   Sex _sex = Sex.male;
@@ -32,6 +32,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Goal? _goal;
   EquipmentSetup? _equipment;
   int _days = 3;
+  TrainingFocus _focus = TrainingFocus.balanced;
+
+  /// El enfoque se sugiere según el sexo hasta que el usuario lo elige a mano.
+  bool _focusChosen = false;
   final Set<String> _focusZones = {};
 
   double get _bmi => _weightKg / ((_heightCm / 100) * (_heightCm / 100));
@@ -40,7 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         1 => _activity != null,
         2 => _level != null,
         3 => _goal != null,
-        4 => _equipment != null,
+        5 => _equipment != null,
         _ => true,
       };
 
@@ -54,6 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       heightCm: _heightCm,
       weightKg: _weightKg,
       activity: _activity ?? ActivityLevel.moderate,
+      focus: _focus,
       focusZones: _focusZones.toList(),
     );
     await Storage.saveProfile(profile);
@@ -167,6 +172,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
                   _step(
+                    title: '¿Cómo quieres repartir el esfuerzo?',
+                    subtitle:
+                        'Define qué zonas reciben más días y más series cada semana.',
+                    options: [
+                      for (final f in TrainingFocus.values)
+                        _OptionCard(
+                          emoji: f.emoji,
+                          label: f.label,
+                          description: f.description,
+                          selected: _focus == f,
+                          onTap: () => setState(() {
+                            _focus = f;
+                            _focusChosen = true;
+                          }),
+                        ),
+                    ],
+                  ),
+                  _step(
                     title: '¿Con qué equipo cuentas?',
                     subtitle: 'Solo te propondremos ejercicios que puedas hacer.',
                     options: [
@@ -255,7 +278,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ButtonSegment(value: s, label: Text('${s.emoji} ${s.label}')),
           ],
           selected: {_sex},
-          onSelectionChanged: (sel) => setState(() => _sex = sel.first),
+          onSelectionChanged: (sel) => setState(() {
+            _sex = sel.first;
+            if (!_focusChosen) _focus = _sex.suggestedFocus;
+          }),
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.resolveWith((states) =>
                 states.contains(WidgetState.selected)

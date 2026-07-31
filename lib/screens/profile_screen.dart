@@ -112,6 +112,10 @@ class ProfileScreen extends StatelessWidget {
               title: 'Objetivo',
               value: profile.goal.label),
           _InfoTile(
+              icon: profile.focus.emoji,
+              title: 'Enfoque',
+              value: profile.focus.label),
+          _InfoTile(
               icon: profile.equipment.emoji,
               title: 'Equipo',
               value: profile.equipment.label),

@@ -12,6 +12,34 @@ extension SexX on Sex {
         Sex.male => '👨',
         Sex.female => '👩',
       };
+
+  /// Enfoque sugerido de partida; el usuario siempre puede cambiarlo.
+  TrainingFocus get suggestedFocus => switch (this) {
+        Sex.male => TrainingFocus.balanced,
+        Sex.female => TrainingFocus.lowerBody,
+      };
+}
+
+/// Énfasis del plan semanal.
+enum TrainingFocus { balanced, lowerBody }
+
+extension TrainingFocusX on TrainingFocus {
+  String get label => switch (this) {
+        TrainingFocus.balanced => 'Equilibrado',
+        TrainingFocus.lowerBody => 'Glúteo y pierna',
+      };
+
+  String get emoji => switch (this) {
+        TrainingFocus.balanced => '⚖️',
+        TrainingFocus.lowerBody => '🍑',
+      };
+
+  String get description => switch (this) {
+        TrainingFocus.balanced =>
+          'Reparte el volumen entre todo el cuerpo por igual',
+        TrainingFocus.lowerBody =>
+          'Más días y series de glúteo, pierna y abdomen',
+      };
 }
 
 /// Nivel de actividad del día a día (sedentarismo).
@@ -118,6 +146,7 @@ class UserProfile {
   final int heightCm;
   final int weightKg;
   final ActivityLevel activity;
+  final TrainingFocus focus;
 
   /// Partes del cuerpo (valores del dataset) que el usuario quiere priorizar.
   final List<String> focusZones;
@@ -131,6 +160,7 @@ class UserProfile {
     this.heightCm = 170,
     this.weightKg = 70,
     this.activity = ActivityLevel.moderate,
+    this.focus = TrainingFocus.balanced,
     this.focusZones = const [],
   });
 
@@ -145,6 +175,7 @@ class UserProfile {
     int? heightCm,
     int? weightKg,
     ActivityLevel? activity,
+    TrainingFocus? focus,
     List<String>? focusZones,
   }) =>
       UserProfile(
@@ -156,6 +187,7 @@ class UserProfile {
         heightCm: heightCm ?? this.heightCm,
         weightKg: weightKg ?? this.weightKg,
         activity: activity ?? this.activity,
+        focus: focus ?? this.focus,
         focusZones: focusZones ?? this.focusZones,
       );
 
@@ -168,6 +200,7 @@ class UserProfile {
         'heightCm': heightCm,
         'weightKg': weightKg,
         'activity': activity.name,
+        'focus': focus.name,
         'focusZones': focusZones,
       };
 
@@ -182,6 +215,9 @@ class UserProfile {
         activity: j['activity'] != null
             ? ActivityLevel.values.byName(j['activity'] as String)
             : ActivityLevel.moderate,
+        focus: j['focus'] != null
+            ? TrainingFocus.values.byName(j['focus'] as String)
+            : TrainingFocus.balanced,
         focusZones:
             ((j['focusZones'] as List?) ?? const []).cast<String>(),
       );
