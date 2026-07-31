@@ -136,6 +136,29 @@ class UserProfile {
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
 
+  UserProfile copyWith({
+    Level? level,
+    Goal? goal,
+    EquipmentSetup? equipment,
+    int? daysPerWeek,
+    Sex? sex,
+    int? heightCm,
+    int? weightKg,
+    ActivityLevel? activity,
+    List<String>? focusZones,
+  }) =>
+      UserProfile(
+        level: level ?? this.level,
+        goal: goal ?? this.goal,
+        equipment: equipment ?? this.equipment,
+        daysPerWeek: daysPerWeek ?? this.daysPerWeek,
+        sex: sex ?? this.sex,
+        heightCm: heightCm ?? this.heightCm,
+        weightKg: weightKg ?? this.weightKg,
+        activity: activity ?? this.activity,
+        focusZones: focusZones ?? this.focusZones,
+      );
+
   Map<String, dynamic> toJson() => {
         'level': level.name,
         'goal': goal.name,

@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
 
 import '../models/profile.dart';
+import '../services/auth_service.dart';
 import '../services/storage.dart';
 import '../theme.dart';
 import '../util/translations.dart';
 import '../widgets/avatar_3d.dart';
+import 'login_screen.dart';
 import 'onboarding_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _signOut(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text(
+            'Tu progreso queda guardado en tu cuenta. ¿Quieres salir?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancelar')),
+          FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Salir')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await AuthService.signOut();
+    await Storage.clearAll();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final profile = Storage.profile!;
     final streak = Storage.streak;
     final total = Storage.completedDates.length;
+    final user = AuthService.user;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -89,6 +119,25 @@ class ProfileScreen extends StatelessWidget {
               icon: '📅',
               title: 'Frecuencia',
               value: '${profile.daysPerWeek} días por semana'),
+          if (user != null) ...[
+            _InfoTile(
+                icon: '👤',
+                title: 'Cuenta',
+                value: user.email ?? user.displayName ?? 'Google'),
+            const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: () => _signOut(context),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                foregroundColor: AppColors.textSecondary,
+                side: const BorderSide(color: AppColors.surfaceHigh),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              icon: const Icon(Icons.logout, size: 18),
+              label: const Text('Cerrar sesión'),
+            ),
+          ],
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () async {

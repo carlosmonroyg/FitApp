@@ -66,12 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Level.beginner => Level.intermediate,
       _ => Level.advanced,
     };
-    final upgraded = UserProfile(
-      level: next,
-      goal: _profile.goal,
-      equipment: _profile.equipment,
-      daysPerWeek: _profile.daysPerWeek,
-    );
+    final upgraded = _profile.copyWith(level: next);
     await Storage.saveProfile(upgraded);
     await Storage.markLevelUpOffered();
     _profile = upgraded;

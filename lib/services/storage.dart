@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,8 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
 import '../models/profile.dart';
 import '../models/routine.dart';
+import 'cloud_sync.dart';
 
 /// Persistencia local: perfil, rutina semanal, racha e historial.
+/// Cada guardado dispara una copia a la nube si hay sesión iniciada.
 class Storage {
   static late SharedPreferences _prefs;
 
@@ -21,12 +24,17 @@ class Storage {
     return UserProfile.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
-  static Future<void> saveProfile(UserProfile p) =>
-      _prefs.setString('profile', jsonEncode(p.toJson()));
+  static Future<void> saveProfile(UserProfile p) async {
+    await _prefs.setString('profile', jsonEncode(p.toJson()));
+    unawaited(CloudSync.push());
+  }
 
   // ---- Rutina semanal ----
-  static Future<void> saveWeek(List<WorkoutDay> week) => _prefs.setString(
-      'week', jsonEncode(week.map((d) => d.toJson()).toList()));
+  static Future<void> saveWeek(List<WorkoutDay> week) async {
+    await _prefs.setString(
+        'week', jsonEncode(week.map((d) => d.toJson()).toList()));
+    unawaited(CloudSync.push());
+  }
 
   static List<WorkoutDay>? loadWeek(Exercise Function(String) resolve) {
     final raw = _prefs.getString('week');
@@ -49,6 +57,7 @@ class Storage {
   static Future<void> markCompletedToday() async {
     final done = completedDates..add(_dayKey(DateTime.now()));
     await _prefs.setStringList('completed', done.toList());
+    unawaited(CloudSync.push());
   }
 
   static bool get completedToday =>
@@ -95,11 +104,45 @@ class Storage {
   static bool get levelUpOfferedThisWeek =>
       _prefs.getString('levelUpOffered') == _weekId;
 
-  static Future<void> markLevelUpOffered() =>
-      _prefs.setString('levelUpOffered', _weekId);
+  static Future<void> markLevelUpOffered() async {
+    await _prefs.setString('levelUpOffered', _weekId);
+    unawaited(CloudSync.push());
+  }
 
   static Future<void> reset() async {
     await _prefs.remove('profile');
     await _prefs.remove('week');
+  }
+
+  /// Borra todos los datos locales (al cerrar sesión, para que el siguiente
+  /// usuario del dispositivo no herede el progreso de otra cuenta).
+  static Future<void> clearAll() => _prefs.clear();
+
+  // ---- Sincronización con la nube ----
+
+  /// Estado local completo con las mismas claves que usa Firestore.
+  /// La semana viaja como JSON crudo (idéntico al formato local).
+  static Map<String, dynamic> exportCloudData() => {
+        'profile': profile?.toJson(),
+        'week': _prefs.getString('week'),
+        'completed': completedDates.toList(),
+        'levelUpOffered': _prefs.getString('levelUpOffered'),
+      };
+
+  /// Vuelca al almacenamiento local lo descargado de Firestore.
+  static Future<void> importCloudData(Map<String, dynamic> data) async {
+    final profile = data['profile'];
+    if (profile is Map) {
+      await _prefs.setString(
+          'profile', jsonEncode(Map<String, dynamic>.from(profile)));
+    }
+    final week = data['week'];
+    if (week is String) await _prefs.setString('week', week);
+    final completed = data['completed'];
+    if (completed is List) {
+      await _prefs.setStringList('completed', completed.cast<String>());
+    }
+    final offered = data['levelUpOffered'];
+    if (offered is String) await _prefs.setString('levelUpOffered', offered);
   }
 }
