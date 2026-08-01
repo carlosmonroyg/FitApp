@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise.dart';
+import '../models/phase.dart';
 import '../models/plan.dart';
 import '../models/profile.dart';
 import '../models/routine.dart';
@@ -30,6 +31,34 @@ class Storage {
     unawaited(CloudSync.push());
   }
 
+  // ---- Programa guiado por fases ----
+
+  /// Día en que arrancó el programa. Se fija al crear el perfil.
+  static DateTime? get programStart {
+    final raw = _prefs.getString('programStart');
+    return raw == null ? null : DateTime.tryParse(raw);
+  }
+
+  static Future<void> startProgram() async {
+    final now = DateTime.now();
+    await _prefs.setString(
+        'programStart', DateTime(now.year, now.month, now.day).toIso8601String());
+    unawaited(CloudSync.push());
+  }
+
+  /// Semana del programa, 1-based. Sin fecha de inicio se asume la primera.
+  static int get programWeek {
+    final start = programStart;
+    if (start == null) return 1;
+    final days = DateTime.now().difference(start).inDays;
+    return days < 0 ? 1 : days ~/ 7 + 1;
+  }
+
+  static TrainingPhase get currentPhase => phaseForWeek(programWeek);
+
+  /// Fase con la que se generó la rutina guardada, para detectar el salto.
+  static String? get weekPhase => _prefs.getString('weekPhase');
+
   // ---- Plan comercial ----
   static Plan get plan {
     final raw = _prefs.getString('plan');
@@ -46,6 +75,7 @@ class Storage {
   static Future<void> saveWeek(List<WorkoutDay> week) async {
     await _prefs.setString(
         'week', jsonEncode(week.map((d) => d.toJson()).toList()));
+    await _prefs.setString('weekPhase', currentPhase.name);
     unawaited(CloudSync.push());
   }
 
@@ -141,6 +171,8 @@ class Storage {
         'completed': completedDates.toList(),
         'levelUpOffered': _prefs.getString('levelUpOffered'),
         'plan': plan.name,
+        'programStart': _prefs.getString('programStart'),
+        'weekPhase': weekPhase,
       };
 
   /// Vuelca al almacenamiento local lo descargado de Firestore.
@@ -160,5 +192,9 @@ class Storage {
     if (offered is String) await _prefs.setString('levelUpOffered', offered);
     final plan = data['plan'];
     if (plan is String) await _prefs.setString('plan', plan);
+    final start = data['programStart'];
+    if (start is String) await _prefs.setString('programStart', start);
+    final phase = data['weekPhase'];
+    if (phase is String) await _prefs.setString('weekPhase', phase);
   }
 }

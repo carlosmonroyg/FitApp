@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../models/exercise.dart';
+import '../models/phase.dart';
 import '../models/profile.dart';
 import '../models/routine.dart';
 
@@ -23,10 +24,18 @@ class _DayTemplate {
 class RoutineGenerator {
   final List<Exercise> catalog;
   final UserProfile profile;
+
+  /// Fase del programa guiado: decide series, repeticiones y descanso.
+  final TrainingPhase phase;
+
   final Random _rand;
 
-  RoutineGenerator(this.catalog, this.profile, {int? seed})
-      : _rand = Random(seed ?? DateTime.now().millisecondsSinceEpoch);
+  RoutineGenerator(
+    this.catalog,
+    this.profile, {
+    this.phase = TrainingPhase.adaptation,
+    int? seed,
+  }) : _rand = Random(seed ?? DateTime.now().millisecondsSinceEpoch);
 
   /// Semana completa: 7 entradas (lunes a domingo), con días de descanso.
   List<WorkoutDay> generateWeek() {
@@ -220,17 +229,50 @@ class RoutineGenerator {
     );
   }
 
-  /// Series, repeticiones y descanso según objetivo, sedentarismo e IMC.
+  /// Series, repeticiones y descanso según fase, objetivo, sedentarismo e IMC.
   ///
-  /// Fórmula de arranque suave: una vida sedentaria (o un IMC alto) reduce
-  /// el volumen inicial y alarga el descanso para evitar lesiones y abandono;
-  /// una vida muy activa lo acorta.
+  /// La fase manda: se arranca con poco volumen y repeticiones altas para
+  /// aprender la técnica, y se va cargando conforme avanza el programa.
+  /// Encima, una vida sedentaria (o un IMC alto) reduce todavía más el
+  /// volumen inicial y alarga el descanso para evitar lesiones y abandono.
   (int, String, int) _prescription() {
-    var (sets, reps, rest) = switch (profile.goal) {
-      Goal.buildMuscle => (4, '8–12', 90),
-      Goal.loseWeight => (3, '12–15', 45),
-      Goal.stayFit => (3, '10–12', 60),
+    final baseSets = switch (profile.goal) {
+      Goal.buildMuscle => 4,
+      Goal.loseWeight => 3,
+      Goal.stayFit => 3,
     };
+    final baseRest = switch (profile.goal) {
+      Goal.buildMuscle => 90,
+      Goal.loseWeight => 45,
+      Goal.stayFit => 60,
+    };
+
+    // Repeticiones por objetivo y fase: más ligeras al empezar, más pesadas
+    // al consolidar.
+    final reps = switch ((profile.goal, phase)) {
+      (Goal.buildMuscle, TrainingPhase.adaptation) => '10–15',
+      (Goal.buildMuscle, TrainingPhase.progression) => '8–12',
+      (Goal.buildMuscle, TrainingPhase.consolidation) => '6–10',
+      (Goal.loseWeight, TrainingPhase.adaptation) => '15–20',
+      (Goal.loseWeight, TrainingPhase.progression) => '12–15',
+      (Goal.loseWeight, TrainingPhase.consolidation) => '10–12',
+      (Goal.stayFit, TrainingPhase.adaptation) => '12–15',
+      (Goal.stayFit, TrainingPhase.progression) => '10–12',
+      (Goal.stayFit, TrainingPhase.consolidation) => '8–12',
+    };
+
+    var sets = switch (phase) {
+      TrainingPhase.adaptation => baseSets - 1,
+      TrainingPhase.progression => baseSets,
+      TrainingPhase.consolidation => baseSets + 1,
+    };
+    var rest = switch (phase) {
+      TrainingPhase.adaptation => baseRest + 15,
+      TrainingPhase.progression => baseRest,
+      TrainingPhase.consolidation => baseRest + 20,
+    };
+    sets = sets.clamp(2, 6);
+
     switch (profile.activity) {
       case ActivityLevel.sedentary:
         sets = (sets - 1).clamp(2, 5);

@@ -62,8 +62,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       focusZones: _focusZones.toList(),
     );
     await Storage.saveProfile(profile);
-    final week =
-        RoutineGenerator(ExerciseRepository.instance.all, profile).generateWeek();
+    await Storage.startProgram();
+    final week = RoutineGenerator(ExerciseRepository.instance.all, profile,
+            phase: Storage.currentPhase)
+        .generateWeek();
     await Storage.saveWeek(week);
     if (!mounted) return;
     Navigator.of(context)

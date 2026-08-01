@@ -100,8 +100,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final updated = profile.copyWith(focus: picked);
     await Storage.saveProfile(updated);
-    final week =
-        RoutineGenerator(ExerciseRepository.instance.all, updated).generateWeek();
+    final week = RoutineGenerator(ExerciseRepository.instance.all, updated,
+            phase: Storage.currentPhase)
+        .generateWeek();
     await Storage.saveWeek(week);
     if (!mounted) return;
     setState(() {});

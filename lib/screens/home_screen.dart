@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/phase.dart';
 import '../models/profile.dart';
 import '../models/routine.dart';
 import '../services/repository.dart';
@@ -40,15 +41,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _profile = Storage.profile!;
     final repo = ExerciseRepository.instance;
     var week = Storage.loadWeek(repo.byId);
-    if (week == null) {
-      week = RoutineGenerator(repo.all, _profile).generateWeek();
+    // Al entrar en una fase nueva la rutina guardada ya no sirve: cambian
+    // series, repeticiones y descansos.
+    if (week == null || Storage.weekPhase != Storage.currentPhase.name) {
+      week = RoutineGenerator(repo.all, _profile,
+              phase: Storage.currentPhase)
+          .generateWeek();
       Storage.saveWeek(week);
     }
     _week = week;
   }
 
   Future<void> _regenerate() async {
-    final week = RoutineGenerator(ExerciseRepository.instance.all, _profile)
+    final week = RoutineGenerator(ExerciseRepository.instance.all, _profile,
+            phase: Storage.currentPhase)
         .generateWeek();
     await Storage.saveWeek(week);
     setState(() => _week = week);
@@ -176,6 +182,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
             const SizedBox(height: 20),
+            _PhaseCard(
+              phase: Storage.currentPhase,
+              week: Storage.programWeek,
+            ),
+            const SizedBox(height: 20),
             _TodayCard(
               day: today,
               done: Storage.completedToday,
@@ -221,6 +232,88 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Dónde va el usuario dentro del programa guiado y qué buscar esta fase.
+class _PhaseCard extends StatelessWidget {
+  final TrainingPhase phase;
+  final int week;
+
+  const _PhaseCard({required this.phase, required this.week});
+
+  @override
+  Widget build(BuildContext context) {
+    final inCycle = weekInCycle(week);
+    final cycle = cycleOf(week);
+    final weekInPhase = inCycle - phase.firstWeek + 1;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(phase.emoji, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Fase ${phase.index + 1} · ${phase.label}',
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary)),
+                    Text(phase.aim,
+                        style: const TextStyle(
+                            fontSize: 12.5, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Text(
+                cycle > 1
+                    ? 'Sem $inCycle/$programWeeks · ciclo $cycle'
+                    : 'Sem $inCycle/$programWeeks',
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              for (var i = 1; i <= weeksPerPhase; i++)
+                Expanded(
+                  child: Container(
+                    height: 5,
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: i <= weekInPhase
+                          ? AppColors.accent
+                          : AppColors.surfaceHigh,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(phase.guidance,
+              style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.45,
+                  color: AppColors.textSecondary)),
+        ],
       ),
     );
   }
