@@ -44,3 +44,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Configuración local de DevTools
+devtools_options.yaml
+
+# Firma de release: nunca subir la clave ni sus contraseñas
+/android/key.properties
+*.jks
+*.keystore

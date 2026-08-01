@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/exercise.dart';
+import '../models/plan.dart';
 import '../models/profile.dart';
 import '../models/routine.dart';
 import 'cloud_sync.dart';
@@ -26,6 +27,18 @@ class Storage {
 
   static Future<void> saveProfile(UserProfile p) async {
     await _prefs.setString('profile', jsonEncode(p.toJson()));
+    unawaited(CloudSync.push());
+  }
+
+  // ---- Plan comercial ----
+  static Plan get plan {
+    final raw = _prefs.getString('plan');
+    if (raw == null) return Plan.free;
+    return Plan.values.asNameMap()[raw] ?? Plan.free;
+  }
+
+  static Future<void> savePlan(Plan p) async {
+    await _prefs.setString('plan', p.name);
     unawaited(CloudSync.push());
   }
 
@@ -127,6 +140,7 @@ class Storage {
         'week': _prefs.getString('week'),
         'completed': completedDates.toList(),
         'levelUpOffered': _prefs.getString('levelUpOffered'),
+        'plan': plan.name,
       };
 
   /// Vuelca al almacenamiento local lo descargado de Firestore.
@@ -144,5 +158,7 @@ class Storage {
     }
     final offered = data['levelUpOffered'];
     if (offered is String) await _prefs.setString('levelUpOffered', offered);
+    final plan = data['plan'];
+    if (plan is String) await _prefs.setString('plan', plan);
   }
 }

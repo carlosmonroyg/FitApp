@@ -22,6 +22,22 @@
           }
         },
         {
+          "client_id": "1085443948857-7almhpgt5nj6trpkho99r83k0jguqo1i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fitapp.fitapp",
+            "certificate_hash": "a36a4b16644052e6db8f96dfe1af4028c00088f7"
+          }
+        },
+        {
+          "client_id": "1085443948857-q991ngmffin0rs9lg8o6vmsfqsdi2dkn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fitapp.fitapp",
+            "certificate_hash": "2fe794554af58f88a2e739f961241b8c11dc8ac3"
+          }
+        },
+        {
           "client_id": "1085443948857-0dlkkb1n7ilnm6sbcce06hvb8jrkhoqo.apps.googleusercontent.com",
           "client_type": 3
         }
