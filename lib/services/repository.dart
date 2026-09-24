@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:flutter/services.dart';
 
@@ -19,8 +20,13 @@ class ExerciseRepository {
   Future<void> load() async {
     if (isLoaded) return;
     final raw = await rootBundle.loadString('assets/data/exercises.json');
-    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-    _all = list.map(Exercise.fromJson).toList();
+    // 1.2 MB de JSON: se decodifica fuera del hilo de UI.
+    _all = await Isolate.run(
+      () => (jsonDecode(raw) as List)
+          .cast<Map<String, dynamic>>()
+          .map(Exercise.fromJson)
+          .toList(),
+    );
     _byId = {for (final e in _all) e.id: e};
   }
 

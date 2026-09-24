@@ -1,1 +1,45 @@
-{"firestore":{"rules":"firestore.rules"},"flutter":{"platforms":{"android":{"default":{"projectId":"fitapp-f888e","appId":"1:1085443948857:android:bbf197d5532b2665b268e8","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"fitapp-f888e","configurations":{"android":"1:1085443948857:android:bbf197d5532b2665b268e8","ios":"1:1085443948857:ios:4fd353ea66cd21d0b268e8"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fitapp-f888e",
+          "appId": "1:1085443948857:android:bbf197d5532b2665b268e8",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fitapp-f888e",
+          "configurations": {
+            "android": "1:1085443948857:android:bbf197d5532b2665b268e8",
+            "ios": "1:1085443948857:ios:4fd353ea66cd21d0b268e8"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}

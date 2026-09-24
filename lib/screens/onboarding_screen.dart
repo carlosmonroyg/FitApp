@@ -5,6 +5,7 @@ import '../services/repository.dart';
 import '../services/routine_generator.dart';
 import '../services/storage.dart';
 import '../theme.dart';
+import '../util/legal.dart';
 import '../util/translations.dart';
 import '../widgets/avatar_3d.dart';
 import 'shell.dart';
@@ -45,8 +46,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         2 => _level != null,
         3 => _goal != null,
         5 => _equipment != null,
+        const (_pageCount - 1) => !_needsTerms || _acceptedTerms,
         _ => true,
       };
+
+  /// Se pide una sola vez por versión de los términos (no al reconfigurar).
+  final bool _needsTerms = Storage.acceptedTermsVersion < Legal.termsVersion;
+  bool _acceptedTerms = false;
 
   Future<void> _finish() async {
     final profile = UserProfile(
@@ -61,6 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       focus: _focus,
       focusZones: _focusZones.toList(),
     );
+    if (_needsTerms) await Storage.acceptTerms(Legal.termsVersion);
     await Storage.saveProfile(profile);
     await Storage.startProgram();
     final week = RoutineGenerator(ExerciseRepository.instance.all, profile,
@@ -234,6 +241,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ],
               ),
             ),
+            if (_page == _pageCount - 1 && _needsTerms)
+              _TermsCheck(
+                value: _acceptedTerms,
+                onChanged: (v) => setState(() => _acceptedTerms = v),
+              ),
             Padding(
               padding: const EdgeInsets.all(24),
               child: FilledButton(
@@ -430,6 +442,86 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ...options.map((o) => Padding(
             padding: const EdgeInsets.only(bottom: 12), child: o)),
       ],
+    );
+  }
+}
+
+/// Aceptación del aviso de salud y la política de privacidad, antes de
+/// generar la primera rutina.
+class _TermsCheck extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _TermsCheck({required this.value, required this.onChanged});
+
+  void _showDisclaimer(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Aviso de salud'),
+        content: const Text(Legal.healthDisclaimer),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Entendido')),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const link = TextStyle(
+        fontSize: 13,
+        color: AppColors.accent,
+        fontWeight: FontWeight.w700,
+        decoration: TextDecoration.underline,
+        decorationColor: AppColors.accent);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 24, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Checkbox(value: value, onChanged: (v) => onChanged(v ?? false)),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text.rich(
+                TextSpan(
+                  style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: AppColors.textSecondary),
+                  children: [
+                    const TextSpan(
+                        text: 'Entiendo que FitApp no sustituye consejo '
+                            'médico ('),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: GestureDetector(
+                        onTap: () => _showDisclaimer(context),
+                        child: const Text('aviso de salud', style: link),
+                      ),
+                    ),
+                    const TextSpan(text: ') y acepto la '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: GestureDetector(
+                        onTap: Legal.openPrivacy,
+                        child:
+                            const Text('política de privacidad', style: link),
+                      ),
+                    ),
+                    const TextSpan(text: '.'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

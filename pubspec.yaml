@@ -14,10 +14,14 @@ dependencies:
   cached_network_image: ^3.4.0
   flutter_body_atlas: ^0.1.4
   flutter_3d_controller: ^2.3.0
-  firebase_core: ^4.12.1
-  firebase_auth: ^6.5.6
-  cloud_firestore: ^6.7.1
+  firebase_core: ^4.14.0
+  firebase_auth: ^6.6.1
+  cloud_firestore: ^6.9.0
   google_sign_in: ^7.2.0
+  cloud_functions: ^6.4.0
+  firebase_crashlytics: ^5.4.0
+  package_info_plus: ^10.2.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -30,6 +34,7 @@ flutter:
   assets:
     - assets/data/exercises.json
     - assets/models/
+    - assets/icon/icon.png
 
 flutter_launcher_icons:
   android: true

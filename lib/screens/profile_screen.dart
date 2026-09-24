@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../models/measurement.dart';
 import '../models/plan.dart';
 import '../models/profile.dart';
 import '../services/auth_service.dart';
@@ -10,7 +11,9 @@ import '../services/storage.dart';
 import '../theme.dart';
 import '../util/translations.dart';
 import '../widgets/avatar_3d.dart';
+import 'about_screen.dart';
 import 'login_screen.dart';
+import 'measurements_screen.dart';
 import 'onboarding_screen.dart';
 
 /// Centro de cuenta: identidad de Google, plan comercial, estadísticas y
@@ -261,6 +264,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: 'Entrenamientos')),
             ],
           ),
+          const SizedBox(height: 12),
+          _BodyCard(
+            onTap: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const MeasurementsScreen()));
+              if (mounted) setState(() {});
+            },
+          ),
           const SizedBox(height: 24),
           _InfoTile(
               icon: profile.focus.emoji,
@@ -315,14 +326,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: const Text('Cerrar sesión'),
             ),
           ],
-          const SizedBox(height: 32),
-          const Center(
-            child: Text(
-              'Ejercicios y medios: © Gym visual (gymvisual.com)\nDataset: exercises-dataset (MIT)\nAnatomía corporal: Ryan Graves (CC BY 4.0)',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AboutScreen())),
+            style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary),
+            icon: const Icon(Icons.shield_outlined, size: 18),
+            label: const Text('Privacidad, datos y créditos'),
           ),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -553,6 +566,69 @@ class _InfoTile extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Acceso a "Mi cuerpo" con el último peso y cintura, o invitación a la
+/// primera toma.
+class _BodyCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BodyCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final latest = Storage.latestMeasurement;
+    final parts = <String>[];
+    if (latest != null) {
+      for (final k in [MeasureKind.weight, MeasureKind.waist, MeasureKind.hip]) {
+        final v = Storage.latestValue(k);
+        if (v != null) {
+          final t = v == v.roundToDouble()
+              ? v.toInt().toString()
+              : v.toStringAsFixed(1);
+          parts.add('${k.label} $t ${k.unit}');
+        }
+      }
+    }
+    final days = Storage.daysSinceMeasurement;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            const Text('📏', style: TextStyle(fontSize: 26)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Mi cuerpo',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: AppColors.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(
+                    latest == null
+                        ? 'Registra peso y medidas para ver tu progreso'
+                        : '${parts.join(' · ')} · hace $days d',
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
         ),
       ),
     );

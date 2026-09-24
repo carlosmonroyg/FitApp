@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitApp · Política de privacidad</title>
+<meta name="description" content="Qué datos recoge FitApp, para qué los usa y cómo eliminarlos.">
+<style>
+  :root {
+    --bg: #0D1117; --surface: #161B26; --text: #F2F5F9; --muted: #98A2B3;
+    --accent: #C8F135; --line: #1F2633;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #FFFFFF; --surface: #F4F6F8; --text: #111827; --muted: #4B5563;
+            --accent: #4D7C0F; --line: #E5E7EB; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 16px 80px; }
+  h1 { font-size: 2rem; letter-spacing: -0.02em; margin: 0 0 4px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  p, li { color: var(--muted); }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .card { background: var(--surface); border-radius: 16px; padding: 16px 20px; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--text); font-weight: 600; }
+  td { color: var(--muted); }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Política de privacidad</h1>
+  <p class="meta">FitApp · Vigente desde el [FECHA DE PUBLICACIÓN]</p>
+
+  <div class="card">
+    <p><strong>En corto:</strong> usamos tus datos solo para armar y ajustar tu
+    plan de entrenamiento. No los vendemos ni los usamos para publicidad. Puedes
+    borrar tu cuenta y todos tus datos desde la app cuando quieras.</p>
+  </div>
+
+  <h2>Quién es responsable</h2>
+  <p>El responsable del tratamiento de tus datos es <strong>[NOMBRE DEL
+  RESPONSABLE]</strong>, desarrollador de FitApp. Para cualquier consulta sobre
+  tus datos escribe a <a href="mailto:[CORREO DE SOPORTE]">[CORREO DE SOPORTE]</a>.</p>
+
+  <h2>Qué datos recogemos</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>Dato</th><th>Para qué</th></tr>
+    <tr><td><strong>Cuenta de Google</strong>: nombre, correo, foto e identificador</td>
+        <td>Iniciar sesión y guardar tu progreso en la nube para que no lo pierdas al cambiar de teléfono.</td></tr>
+    <tr><td><strong>Perfil</strong>: sexo, estatura, peso, nivel de actividad, experiencia, objetivo, equipo disponible, días por semana y zonas prioritarias</td>
+        <td>Generar una rutina adecuada a ti.</td></tr>
+    <tr><td><strong>Entrenamientos</strong>: ejercicios, series, peso, repeticiones, esfuerzo percibido, duración y cómo te sentiste</td>
+        <td>Mostrar tu progreso y récords, y ajustar las cargas.</td></tr>
+    <tr><td><strong>Medidas corporales</strong>: peso, perímetros y porcentaje de grasa (todas opcionales)</td>
+        <td>Mostrarte tu evolución y orientar las recomendaciones.</td></tr>
+    <tr><td><strong>Informes de fallos</strong>: modelo del teléfono, versión del sistema y de la app, y el detalle técnico del error</td>
+        <td>Detectar y corregir errores. No incluyen tus entrenamientos ni tus medidas.</td></tr>
+  </table>
+  </div>
+  <p>Tu perfil, tus entrenamientos y tus medidas son <strong>datos relacionados
+  con tu salud</strong>, que la ley considera sensibles. Solo los tratamos con tu
+  autorización expresa, que nos das al aceptar esta política en la app, y darla
+  es voluntario. La app funciona sin medidas corporales.</p>
+
+  <h2>Coach con inteligencia artificial</h2>
+  <p>Cuando pides la revisión semanal del coach, enviamos un resumen de tu
+  perfil, tus entrenamientos recientes y tus medidas a <strong>Anthropic</strong>
+  (proveedor del modelo de IA Claude), que lo procesa para generar las
+  recomendaciones. El resumen no incluye tu nombre ni tu correo. Esto solo ocurre
+  cuando tú pides la revisión.</p>
+
+  <h2>Con quién compartimos datos</h2>
+  <p>No vendemos tus datos ni los compartimos con anunciantes. Solo los procesan
+  los proveedores que hacen funcionar la app:</p>
+  <ul>
+    <li><strong>Google Firebase</strong> (Authentication, Cloud Firestore y
+    Crashlytics): inicio de sesión, almacenamiento en la nube e informes de
+    fallos. Los datos se guardan en servidores de Google en Estados Unidos.</li>
+    <li><strong>Anthropic</strong>: solo para el coach, como se explica arriba.</li>
+    <li><strong>GitHub</strong>: aloja las imágenes de los ejercicios. Al cargarlas,
+    GitHub recibe la dirección IP de tu teléfono, como con cualquier página web.</li>
+  </ul>
+  <p>Al usar estos servicios, tus datos pueden transferirse y almacenarse fuera
+  de tu país.</p>
+
+  <h2>Cuánto tiempo los guardamos</h2>
+  <p>Mientras tengas cuenta. Si la eliminas, borramos tu perfil, entrenamientos,
+  medidas y revisiones del coach de inmediato. Los informes de fallos se borran
+  automáticamente a los 90 días.</p>
+
+  <h2 id="eliminar">Cómo eliminar tu cuenta y tus datos</h2>
+  <div class="card">
+    <p><strong>Desde la app:</strong> Perfil → <em>Privacidad, datos y
+    créditos</em> → <em>Eliminar mi cuenta</em>. Confirmas con Google y se borra
+    todo al momento, en el teléfono y en la nube.</p>
+    <p><strong>Sin la app:</strong> escribe a
+    <a href="mailto:[CORREO DE SOPORTE]?subject=Eliminar%20mi%20cuenta">[CORREO DE SOPORTE]</a>
+    desde el correo de tu cuenta de Google con el asunto "Eliminar mi cuenta".
+    Borramos todos tus datos en un plazo máximo de 15 días hábiles.</p>
+  </div>
+
+  <h2>Tus derechos</h2>
+  <p>Puedes conocer, actualizar, rectificar y suprimir tus datos, y revocar la
+  autorización que nos diste, en cualquier momento. Casi todo lo puedes hacer
+  desde la app (editar tu perfil o medidas, o eliminar tu cuenta). Para lo demás,
+  escríbenos al correo de soporte. En Colombia, estos derechos están reconocidos
+  por la Ley 1581 de 2012 de protección de datos personales.</p>
+
+  <h2>Menores de edad</h2>
+  <p>FitApp está dirigida a personas mayores de 18 años. No recogemos a sabiendas
+  datos de menores.</p>
+
+  <h2>Seguridad</h2>
+  <p>Tus datos viajan cifrados, y las reglas de la base de datos impiden que
+  otra cuenta acceda a ellos.</p>
+
+  <h2>Cambios en esta política</h2>
+  <p>Si hacemos un cambio importante, te lo avisaremos en la app y te pediremos
+  que lo aceptes de nuevo.</p>
+
+  <h2>Aviso de salud</h2>
+  <p>FitApp ofrece rutinas y sugerencias de entrenamiento con fines
+  informativos. No es un servicio médico ni sustituye la valoración de un
+  profesional de la salud. Si tienes lesiones, dolor, estás embarazada o tienes
+  alguna condición médica, consulta a un profesional antes de empezar.</p>
+</main>
+</body>
+</html>

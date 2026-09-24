@@ -4,15 +4,20 @@ import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/shell.dart';
 import 'services/auth_service.dart';
+import 'services/crash_reporter.dart';
 import 'services/repository.dart';
 import 'services/storage.dart';
 import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Storage.init();
-  await ExerciseRepository.instance.load();
-  await AuthService.init();
+  // Independientes entre sí: en paralelo para acortar el splash.
+  await Future.wait([
+    Storage.init(),
+    ExerciseRepository.instance.load(),
+    AuthService.init(),
+  ]);
+  await CrashReporter.init();
   runApp(const FitApp());
 }
 

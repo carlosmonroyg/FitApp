@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../models/coach.dart';
 import '../models/exercise.dart';
 import '../models/phase.dart';
 import '../models/profile.dart';
@@ -28,12 +29,17 @@ class RoutineGenerator {
   /// Fase del programa guiado: decide series, repeticiones y descanso.
   final TrainingPhase phase;
 
+  /// Ajustes del coach (ya validados en el servidor). El generador los
+  /// aplica dentro de sus propias reglas: nunca pierde el control.
+  final Prescription prescription;
+
   final Random _rand;
 
   RoutineGenerator(
     this.catalog,
     this.profile, {
     this.phase = TrainingPhase.adaptation,
+    this.prescription = Prescription.none,
     int? seed,
   }) : _rand = Random(seed ?? DateTime.now().millisecondsSinceEpoch);
 
@@ -194,10 +200,30 @@ class RoutineGenerator {
           Level.advanced => 7,
         } +
         (profile.focus == TrainingFocus.lowerBody ? 1 : 0);
-    final (sets, reps, rest) = _prescription();
+    final (baseSets, reps, baseRest) = _prescription();
+    final rest = (baseRest + prescription.restDeltaSec).clamp(30, 180);
 
-    final used = <String>{};
+    // Lo que el coach pide evitar no entra ni como relleno.
+    final used = <String>{...prescription.avoid};
     final picked = <Exercise>[];
+
+    // Continuidad: los ejercicios en los que la persona progresa se
+    // conservan si encajan en este día (hasta la mitad de la sesión, para
+    // que el resto siga variando).
+    final dayPartsForKeep = template.slots.expand((s) => s.bodyParts).toSet();
+    for (final id in prescription.keep) {
+      if (picked.length >= perDay ~/ 2) break;
+      final ex = _byId(id);
+      if (ex == null || used.contains(ex.id)) continue;
+      if (!dayPartsForKeep.contains(ex.bodyPart)) continue;
+      final slot = template.slots.firstWhere(
+          (s) => s.bodyParts.contains(ex.bodyPart),
+          orElse: () => template.slots.first);
+      if (slot.targets != null && !slot.targets!.contains(ex.target)) continue;
+      picked.add(ex);
+      used.add(ex.id);
+    }
+
     for (final slot in template.slots) {
       if (picked.length >= perDay) break;
       final take = min(slot.count, perDay - picked.length);
@@ -220,13 +246,36 @@ class RoutineGenerator {
       }
     }
 
+    // Sustituciones del coach: solo si el sustituto existe y no está ya.
+    for (var i = 0; i < picked.length; i++) {
+      final toId = prescription.swaps[picked[i].id];
+      if (toId == null) continue;
+      final to = _byId(toId);
+      if (to == null || used.contains(to.id)) continue;
+      used.add(to.id);
+      picked[i] = to;
+    }
+
     return WorkoutDay(
       title: template.title,
       exercises: [
         for (final e in picked)
-          RoutineExercise(exercise: e, sets: sets, reps: reps, restSeconds: rest),
+          RoutineExercise(
+            exercise: e,
+            sets: (baseSets + (prescription.setDelta[e.bodyPart] ?? 0))
+                .clamp(2, 6),
+            reps: reps,
+            restSeconds: rest,
+          ),
       ],
     );
+  }
+
+  Exercise? _byId(String id) {
+    for (final e in catalog) {
+      if (e.id == id) return e;
+    }
+    return null;
   }
 
   /// Series, repeticiones y descanso según fase, objetivo, sedentarismo e IMC.
