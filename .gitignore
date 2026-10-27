@@ -52,3 +52,6 @@ devtools_options.yaml
 /android/key.properties
 *.jks
 *.keystore
+
+# Windows bash crash dumps
+*.stackdump

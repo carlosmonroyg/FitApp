@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,6 +9,7 @@ import '../models/training_log.dart';
 import '../services/storage.dart';
 import '../theme.dart';
 import '../util/translations.dart';
+import '../widgets/exercise_media.dart';
 import 'summary_screen.dart';
 
 enum _ExitChoice { finish, later, discard }
@@ -487,23 +487,9 @@ class _ExercisePage extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Container(
-            color: Colors.white,
-            height: 280,
-            child: CachedNetworkImage(
-              imageUrl: ex.gifUrl,
-              fit: BoxFit.contain,
-              placeholder: (_, _) => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              errorWidget: (_, _, _) => const Center(
-                child: Icon(
-                  Icons.fitness_center,
-                  size: 64,
-                  color: Colors.black26,
-                ),
-              ),
-            ),
+          child: ExerciseMedia(
+            exercise: ex,
+            height: hasOwnVideo(ex) ? 380 : 280,
           ),
         ),
         const SizedBox(height: 16),

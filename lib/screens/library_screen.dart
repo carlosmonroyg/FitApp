@@ -5,6 +5,7 @@ import '../models/exercise.dart';
 import '../services/repository.dart';
 import '../theme.dart';
 import '../util/translations.dart';
+import '../widgets/exercise_media.dart';
 
 /// Biblioteca de los 1,324 ejercicios: búsqueda y filtros por parte del cuerpo.
 class LibraryScreen extends StatefulWidget {
@@ -142,18 +143,9 @@ class _ExerciseTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Container(
-                color: Colors.white,
-                height: 240,
-                child: CachedNetworkImage(
-                  imageUrl: exercise.gifUrl,
-                  fit: BoxFit.contain,
-                  placeholder: (_, _) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
-                  errorWidget: (_, _, _) => const Center(
-                      child: Icon(Icons.fitness_center,
-                          size: 56, color: Colors.black26)),
-                ),
+              child: ExerciseMedia(
+                exercise: exercise,
+                height: hasOwnVideo(exercise) ? 360 : 240,
               ),
             ),
             const SizedBox(height: 16),

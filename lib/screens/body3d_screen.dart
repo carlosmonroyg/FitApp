@@ -153,7 +153,6 @@ class _Body3DScreenState extends State<Body3DScreen> {
     );
   }
 
-  // ---- Modo 3D: modelo rotable ----
   Widget _build3d() {
     return Column(
       children: [
